@@ -8,8 +8,9 @@ spec:
     kind: Service
     name: component-a
     weight: 100
-  port:
-    targetPort: 8080
+
+  # Route intentionally does not contain port field, here. This should be defined in overlay.
+  
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect

@@ -5,11 +5,9 @@ metadata:
     app.kubernetes.io/name: component-b
   name: component-b
 spec:
-  ports:
-  - name: server
-    protocol: TCP
-    port: 8080
-    targetPort: 8080
+
+  # Service intentionally does not contain 'ports' field, here. This should be defined within the overlay.
+  
   selector:
     app.kubernetes.io/name: component-b
 

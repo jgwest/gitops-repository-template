@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: component-a
 spec:
+  replicas: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: component-a
@@ -13,18 +14,7 @@ spec:
     spec:
       containers:
       - name: component-a
-        image: quay.io/jgwest-redhat/sample-workload:latest
         imagePullPolicy: Always
-#        command:
-#        - entrypoint.sh
-        env:
-          - name: ENV_VAR_FROM_CONFIG_MAP
-            valueFrom:
-              configMapKeyRef:
-                name: environment-config-map
-                key: environment-env-var
-          - name: ANOTHER_ENV_VAR
-            value: another-value
 
-        ports:
-        - containerPort: 8080
+    # The spec for the container INTENTIONALLY does not contain image/env vars/replicas/ports, here.
+    # These values should be provided by overlays on a per environment basis.
