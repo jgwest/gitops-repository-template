@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: component-b
   annotations:
-    hello: hi
+    hello: hi2
 spec:
   selector:
     matchLabels:
