@@ -4,11 +4,11 @@ This is an example of what the AppStudio GitOps repository might look like for a
 
 In particular:
 - New environments should be added and removed from `components/(component name)/overlays/(environment name)`
-    - K8s resources (ConfigMaps/etc) that are defined within all environment should be included in `environments/base`
-    - Environments can also contain environment-specific K8s resources: they should be defined in the environment's overlay
+    - Each `components/(component name)` folder needs to have the environment added (presuming it is supported in that environment)
 - The GitOps repository can contain multiple components (for example, the 'frontend' and 'backend' of a single application.)
 - Environment-specific component configuration should be defined in `component/(component name)/overlays/(environment name)`
     - For example, environment variables of the component that are set only in production, or only in development (eg different database credentials for different environments)
+    - Replicas/container image/ports/env vars should only be defined in the `components/(component name)/overlays/(environment name)`.
 - Otherwise this repository uses the standard kustomize `base`/`overlays` pattern, where `base` contain resource definitions, and `overlays` contain patches against those resource definitions (which eliminates the need to duplicate data across multiple resources)
 
 Differences from [template v1](https://github.com/redhat-appstudio/gitops-repository-template):
@@ -27,12 +27,13 @@ There are two types of resources defined in this repository:
 
 - **Environments**
     - Components are deployed within environments.
-    - But: There is no kustomization.yaml listing all the components in an environment.
-        - This previously existed in v1, under `environments/`, but is no longer required, since components are the atomic unit of deployment.
+    - But note, unlike v1: There is no `kustomization.yaml` listing all the Components contained within in an environment (this is handled at the AppStudio API CR level)
+        - This previously existed in v1, under `environments/` folder, but is no longer required, since components are now the atomic unit of deployment.
     - Environments do not contain Kubernetes resources of their own; all resources must be contained within a Component.
         - I don't believe AppStudio ever had a requirement for environment resources, but I have made this assumption explicit, here.
-    - Environments are defined under `components/(component name)/overlays/(environment name)`
-    - Within the GitOps repository, the only purpose of environments is to add values to component resources, such as env vars, container image, ports, etc.
+        - Example: A standalone ConfigMap that is part of an Environment, but not part of Component.
+    - Environments are defined by their customizations to components: `components/(component name)/overlays/(environment name)`
+    - Within the GitOps repository, the only purpose of environments is to add values to component K8s resources, such as env vars, container image, ports, added to Deployments/Services/Routes. See an example of this in this repo.
 
 ## Primary Kustomize Entrypoints
 
@@ -89,16 +90,16 @@ You can try it out by running the following commands:
 # Dev Environment -------------------------------------------------------------
 
 # Create the target namespace
-kubectl create namespace my-environment
+kubectl create namespace my-namespace
 
 # FYI: Output the K8s resources that will be applied for the environment
 kustomize build components/componentA/overlays/dev
 
 # Apply the resources (then wait a moment)
-kustomize build components/componentA/overlays/dev | kubectl apply -n my-environment -f -
+kustomize build components/componentA/overlays/dev | kubectl apply -n my-namespace -f -
 
 # Retrieve the routes of the components
-kubectl get routes
+kubectl get routes -n my-namespace
 
 # You should now be able to access the Route, and see the environments variables output by that Route.
 # Notice that RESOURCE_ENVIRONMENT env var matches the environment name, 'dev'.
@@ -107,16 +108,16 @@ kubectl get routes
 # Staging Environment ---------------------------------------------------------
 
 # Create the target namespace
-kubectl create namespace my-environment
+kubectl create namespace my-namespace
 
 # FYI: output the K8s resources that will be applied for the environment
 kustomize build components/componentB/overlays/staging
 
 # Apply the resources (then wait a moment)
-kustomize build components/componentB/overlays/staging | kubectl apply -n my-environment -f -
+kustomize build components/componentB/overlays/staging | kubectl apply -n my-namespace -f -
 
 # Retrieve the routes of the components
-kubectl get routes
+kubectl get routes -n my-namespace
 
 # You should now be able to access the Route, and see the environments variables output by that Route.
 # Notice that RESOURCE_ENVIRONMENT env var matches the environment name, 'staging'.
